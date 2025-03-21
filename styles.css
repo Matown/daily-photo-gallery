@@ -157,8 +157,11 @@ footer {
 
     #daily-photo {
         max-height: none;
-        aspect-ratio: 4/3;
-        object-fit: cover;
+        height: auto;
+        width: 100%;
+        object-fit: contain;
+        aspect-ratio: auto;
+        max-height: 70vh;
     }
 
     #photo-title {
@@ -176,6 +179,29 @@ footer {
 
     #photo-description {
         font-size: 0.9rem;
+    }
+}
+
+/* 竖屏模式特别处理 */
+@media screen and (max-width: 768px) and (orientation: portrait) {
+    #daily-photo {
+        max-height: 50vh;
+        width: 100%;
+        object-fit: contain;
+        margin: 0 auto;
+    }
+
+    .photo-container {
+        background: var(--light-gray);
+    }
+}
+
+/* 横屏模式特别处理 */
+@media screen and (max-width: 768px) and (orientation: landscape) {
+    #daily-photo {
+        max-height: 70vh;
+        width: 100%;
+        object-fit: contain;
     }
 }
 
