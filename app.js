@@ -11,17 +11,37 @@ const photoData = {
     technicalInfo: []
 };
 
-// 大都会艺术博物馆 API 配置
-const MET_API_URL = 'https://collectionapi.metmuseum.org/public/collection/v1';
+// 芝加哥艺术学院 API 配置
+const AIC_API_URL = 'https://api.artic.edu/api/v1';
+const AIC_IMAGE_URL = 'https://www.artic.edu/iiif/2';
 
-// 摄影作品关键词
-const PHOTO_KEYWORDS = [
-    'photograph',
-    'daguerreotype',
-    'camera work',
-    'gelatin silver print',
-    'photogravure'
+// 著名摄影师列表
+const PHOTOGRAPHERS = [
+    'Alfred Stieglitz',
+    'Man Ray',
+    'László Moholy-Nagy',
+    'Walker Evans',
+    'Henri Cartier-Bresson',
+    'Dorothea Lange',
+    'Edward Steichen',
+    'Edward Weston',
+    'Berenice Abbott',
+    'Margaret Bourke-White'
 ];
+
+// 摄影师简介
+const PHOTOGRAPHER_BIOS = {
+    'Alfred Stieglitz': '阿尔弗雷德·斯蒂格利茨（1864-1946），美国摄影大师，现代摄影的先驱者之一，致力于将摄影提升为一门艺术。',
+    'Man Ray': '曼·雷（1890-1976），超现实主义摄影的代表人物，以实验性的摄影技术闻名。',
+    'László Moholy-Nagy': '拉斯洛·莫霍利-纳吉（1895-1946），包豪斯学院教师，实验性摄影和光影艺术的先驱。',
+    'Walker Evans': '沃克·伊文思（1903-1975），美国纪实摄影大师，以记录大萧条时期的美国生活著称。',
+    'Henri Cartier-Bresson': '亨利·卡蒂埃·布列松（1908-2004），法国摄影大师，"决定性瞬间"理论的创立者。',
+    'Dorothea Lange': '多萝西娅·兰格（1895-1965），美国纪实摄影先驱，以记录大萧条时期的人文影像闻名。',
+    'Edward Steichen': '爱德华·斯泰肯（1879-1973），卢森堡裔美国摄影师，现代摄影艺术的重要推动者。',
+    'Edward Weston': '爱德华·韦斯顿（1886-1958），美国摄影大师，以静物和风光摄影闻名。',
+    'Berenice Abbott': '贝勒尼斯·阿博特（1898-1991），美国摄影师，以记录纽约城市变迁著称。',
+    'Margaret Bourke-White': '玛格丽特·伯克-怀特（1904-1971），美国女摄影师，《生活》杂志首位女摄影师。'
+};
 
 // 显示加载动画
 function showLoading() {
@@ -44,90 +64,62 @@ async function fetchDailyPhoto() {
         showLoading();
         console.log('开始获取每日照片...');
         
-        // 随机选择一个关键词
-        const randomKeyword = PHOTO_KEYWORDS[Math.floor(Math.random() * PHOTO_KEYWORDS.length)];
+        // 随机选择一个摄影师
+        const randomPhotographer = PHOTOGRAPHERS[Math.floor(Math.random() * PHOTOGRAPHERS.length)];
         
         // 搜索摄影作品
-        const searchUrl = `${MET_API_URL}/search?q=${randomKeyword}&hasImages=true&medium=Photographs`;
+        const searchUrl = `${AIC_API_URL}/artworks/search?q=${encodeURIComponent(randomPhotographer)}&fields=id,title,image_id,date_display,artist_display,medium_display,dimensions,credit_line,description,place_of_origin,artwork_type_title,department_title&limit=100`;
         console.log('搜索URL:', searchUrl);
         
-        const searchResponse = await fetch(searchUrl);
-        const searchData = await searchResponse.json();
+        const response = await fetch(searchUrl);
         
-        if (!searchData.objectIDs || searchData.objectIDs.length === 0) {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const searchData = await response.json();
+        
+        if (!searchData.data || searchData.data.length === 0) {
             throw new Error('没有找到摄影作品');
         }
+
+        // 过滤出有图片的作品
+        const artworksWithImages = searchData.data.filter(artwork => artwork.image_id);
         
-        console.log(`找到 ${searchData.objectIDs.length} 个作品`);
-        
-        // 随机选择一个作品ID
-        const randomIndex = Math.floor(Math.random() * searchData.objectIDs.length);
-        const objectID = searchData.objectIDs[randomIndex];
-        
-        // 获取作品详细信息
-        const objectUrl = `${MET_API_URL}/objects/${objectID}`;
-        console.log('作品详情URL:', objectUrl);
-        
-        const objectResponse = await fetch(objectUrl);
-        const objectData = await objectResponse.json();
-        
-        if (!objectData.primaryImage) {
-            throw new Error('作品没有可用的图片');
+        if (artworksWithImages.length === 0) {
+            throw new Error('没有找到带图片的作品');
         }
 
-        // 处理拍摄年代
-        let period = '';
-        if (objectData.period) {
-            period = objectData.period;
-        } else if (objectData.objectDate) {
-            period = objectData.objectDate;
-        } else if (objectData.objectBeginDate && objectData.objectEndDate) {
-            if (objectData.objectBeginDate === objectData.objectEndDate) {
-                period = `${objectData.objectBeginDate}年`;
-            } else {
-                period = `${objectData.objectBeginDate}-${objectData.objectEndDate}年`;
-            }
-        }
-
-        // 构建摄影师信息
-        let photographerName = '佚名';
-        let photographerBio = '';
+        // 随机选择一个作品
+        const artwork = artworksWithImages[Math.floor(Math.random() * artworksWithImages.length)];
         
-        if (objectData.artistDisplayName) {
-            photographerName = objectData.artistDisplayName;
-            
-            const bioElements = [
-                objectData.artistDisplayBio,
-                objectData.artistNationality,
-                objectData.artistBeginDate && objectData.artistEndDate ? 
-                    `(${objectData.artistBeginDate}-${objectData.artistEndDate})` : null
-            ].filter(Boolean);
-            
-            photographerBio = bioElements.join('，') || '历史摄影作品作者';
-        }
+        // 构建图片URL
+        const imageUrl = `${AIC_IMAGE_URL}/${artwork.image_id}/full/843,/0/default.jpg`;
 
         // 构建描述
         let description = [];
-        if (objectData.description) description.push(objectData.description);
-        if (objectData.culture) description.push(`文化背景：${objectData.culture}`);
-        if (period) description.push(`创作年代：${period}`);
-        if (objectData.repository) description.push(`收藏地点：${objectData.repository}`);
+        if (artwork.description) description.push(artwork.description);
+        if (artwork.place_of_origin) description.push(`创作地点：${artwork.place_of_origin}`);
+        if (artwork.date_display) description.push(`创作时间：${artwork.date_display}`);
+
+        // 提取艺术家姓名
+        const artistName = artwork.artist_display ? artwork.artist_display.split('\n')[0] : randomPhotographer;
 
         const result = {
-            title: objectData.title || "历史摄影作品",
-            imageUrl: objectData.primaryImage,
+            title: artwork.title || "历史摄影作品",
+            imageUrl: imageUrl,
             photographer: {
-                name: photographerName,
-                avatar: "https://images.metmuseum.org/CRDImages/ep/original/DP-14939-001.jpg",
-                bio: photographerBio
+                name: artistName,
+                avatar: "https://www.artic.edu/iiif/2/25c31d8d-21a4-9ea1-1d73-6dff13cd3c0e/full/200,/0/default.jpg",
+                bio: PHOTOGRAPHER_BIOS[randomPhotographer] || "20世纪重要摄影艺术家"
             },
-            description: description.join('\n') || "这是一张来自大都会艺术博物馆馆藏的历史摄影作品。",
+            description: description.join('\n') || "这是一张来自芝加哥艺术学院馆藏的历史摄影作品。",
             technicalInfo: [
-                objectData.medium ? `工艺: ${objectData.medium}` : null,
-                objectData.dimensions ? `尺寸: ${objectData.dimensions}` : null,
-                objectData.classification ? `分类: ${objectData.classification}` : null,
-                objectData.department ? `收藏部门: ${objectData.department}` : null,
-                objectData.creditLine ? `来源: ${objectData.creditLine}` : null
+                artwork.artwork_type_title ? `类型: ${artwork.artwork_type_title}` : null,
+                artwork.medium_display ? `工艺: ${artwork.medium_display}` : null,
+                artwork.dimensions ? `尺寸: ${artwork.dimensions}` : null,
+                artwork.department_title ? `收藏部门: ${artwork.department_title}` : null,
+                artwork.credit_line ? `来源: ${artwork.credit_line}` : null
             ].filter(Boolean)
         };
 
