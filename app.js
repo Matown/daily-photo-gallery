@@ -11,20 +11,16 @@ const photoData = {
     technicalInfo: []
 };
 
-// Wikimedia Commons API 配置
-const WIKI_API_URL = 'https://commons.wikimedia.org/w/api.php';
+// 大都会艺术博物馆 API 配置
+const MET_API_URL = 'https://collectionapi.metmuseum.org/public/collection/v1';
 
-// 历史摄影作品集合
-const PHOTO_CATEGORIES = [
-    'Category:Photographs_by_Ansel_Adams',
-    'Category:Photographs_by_Dorothea_Lange',
-    'Category:Photographs_by_Walker_Evans',
-    'Category:Photographs_by_Henri_Cartier-Bresson',
-    'Category:Historical_photographs_of_China',
-    'Category:Black-and-white_photographs',
-    'Category:Street_photography',
-    'Category:Portrait_photographs',
-    'Category:Landscape_photographs'
+// 摄影作品关键词
+const PHOTO_KEYWORDS = [
+    'photograph',
+    'daguerreotype',
+    'camera work',
+    'gelatin silver print',
+    'photogravure'
 ];
 
 // 显示加载动画
@@ -48,85 +44,90 @@ async function fetchDailyPhoto() {
         showLoading();
         console.log('开始获取每日照片...');
         
-        // 随机选择一个摄影作品分类
-        const randomCategory = PHOTO_CATEGORIES[Math.floor(Math.random() * PHOTO_CATEGORIES.length)];
+        // 随机选择一个关键词
+        const randomKeyword = PHOTO_KEYWORDS[Math.floor(Math.random() * PHOTO_KEYWORDS.length)];
         
-        // 第一步：获取分类中的图片
-        const categoryUrl = `${WIKI_API_URL}?action=query&list=categorymembers&cmtype=file&cmtitle=${randomCategory}&format=json&origin=*&cmlimit=50`;
-        console.log('分类搜索URL:', categoryUrl);
+        // 搜索摄影作品
+        const searchUrl = `${MET_API_URL}/search?q=${randomKeyword}&hasImages=true&medium=Photographs`;
+        console.log('搜索URL:', searchUrl);
         
-        const categoryResponse = await fetch(categoryUrl);
-        const categoryData = await categoryResponse.json();
+        const searchResponse = await fetch(searchUrl);
+        const searchData = await searchResponse.json();
         
-        if (!categoryData.query || !categoryData.query.categorymembers || categoryData.query.categorymembers.length === 0) {
+        if (!searchData.objectIDs || searchData.objectIDs.length === 0) {
             throw new Error('没有找到摄影作品');
         }
         
-        // 随机选择一张图片
-        const randomImage = categoryData.query.categorymembers[Math.floor(Math.random() * categoryData.query.categorymembers.length)];
+        console.log(`找到 ${searchData.objectIDs.length} 个作品`);
         
-        // 第二步：获取图片详细信息
-        const imageInfoUrl = `${WIKI_API_URL}?action=query&titles=${encodeURIComponent(randomImage.title)}&prop=imageinfo|categories&iiprop=url|extmetadata|dimensions&format=json&origin=*`;
-        console.log('图片信息URL:', imageInfoUrl);
+        // 随机选择一个作品ID
+        const randomIndex = Math.floor(Math.random() * searchData.objectIDs.length);
+        const objectID = searchData.objectIDs[randomIndex];
         
-        const imageResponse = await fetch(imageInfoUrl);
-        const imageData = await imageResponse.json();
+        // 获取作品详细信息
+        const objectUrl = `${MET_API_URL}/objects/${objectID}`;
+        console.log('作品详情URL:', objectUrl);
         
-        const pages = imageData.query.pages;
-        const pageId = Object.keys(pages)[0];
-        const imageInfo = pages[pageId].imageinfo[0];
+        const objectResponse = await fetch(objectUrl);
+        const objectData = await objectResponse.json();
         
-        if (!imageInfo || !imageInfo.url) {
-            throw new Error('无法获取图片信息');
+        if (!objectData.primaryImage) {
+            throw new Error('作品没有可用的图片');
         }
 
-        // 解析元数据
-        const metadata = imageInfo.extmetadata || {};
-        
-        // 获取摄影师信息
+        // 处理拍摄年代
+        let period = '';
+        if (objectData.period) {
+            period = objectData.period;
+        } else if (objectData.objectDate) {
+            period = objectData.objectDate;
+        } else if (objectData.objectBeginDate && objectData.objectEndDate) {
+            if (objectData.objectBeginDate === objectData.objectEndDate) {
+                period = `${objectData.objectBeginDate}年`;
+            } else {
+                period = `${objectData.objectBeginDate}-${objectData.objectEndDate}年`;
+            }
+        }
+
+        // 构建摄影师信息
         let photographerName = '佚名';
         let photographerBio = '';
         
-        if (metadata.Artist) {
-            photographerName = metadata.Artist.value.replace(/<[^>]*>/g, '');
-        }
-        
-        // 根据分类设置摄影师介绍
-        const photographerIntros = {
-            'Ansel Adams': '安塞尔·亚当斯，美国摄影大师，以黑白风光摄影闻名于世。',
-            'Dorothea Lange': '多萝西娅·兰格，美国纪实摄影先驱，记录了大萧条时期的人文影像。',
-            'Walker Evans': '沃克·伊文思，美国摄影师，以记录美国乡村生活著称。',
-            'Henri Cartier-Bresson': '亨利·卡蒂埃·布列松，法国摄影大师，"决定性瞬间"理论的创立者。'
-        };
-        
-        for (const [name, bio] of Object.entries(photographerIntros)) {
-            if (photographerName.includes(name)) {
-                photographerBio = bio;
-                break;
-            }
-        }
-        
-        if (!photographerBio) {
-            photographerBio = '这位摄影师的作品被收录在维基共享资源中';
+        if (objectData.artistDisplayName) {
+            photographerName = objectData.artistDisplayName;
+            
+            const bioElements = [
+                objectData.artistDisplayBio,
+                objectData.artistNationality,
+                objectData.artistBeginDate && objectData.artistEndDate ? 
+                    `(${objectData.artistBeginDate}-${objectData.artistEndDate})` : null
+            ].filter(Boolean);
+            
+            photographerBio = bioElements.join('，') || '历史摄影作品作者';
         }
 
-        // 清理HTML标签
-        const cleanHtml = (str) => str ? str.replace(/<[^>]*>/g, '') : '';
+        // 构建描述
+        let description = [];
+        if (objectData.description) description.push(objectData.description);
+        if (objectData.culture) description.push(`文化背景：${objectData.culture}`);
+        if (period) description.push(`创作年代：${period}`);
+        if (objectData.repository) description.push(`收藏地点：${objectData.repository}`);
 
         const result = {
-            title: metadata.ObjectName ? cleanHtml(metadata.ObjectName.value) : randomImage.title.split(':').pop(),
-            imageUrl: imageInfo.url,
+            title: objectData.title || "历史摄影作品",
+            imageUrl: objectData.primaryImage,
             photographer: {
                 name: photographerName,
-                avatar: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Wikimedia_Commons_camera_icon.svg/128px-Wikimedia_Commons_camera_icon.svg.png",
+                avatar: "https://images.metmuseum.org/CRDImages/ep/original/DP-14939-001.jpg",
                 bio: photographerBio
             },
-            description: metadata.ImageDescription ? cleanHtml(metadata.ImageDescription.value) : "这是一张历史摄影作品",
+            description: description.join('\n') || "这是一张来自大都会艺术博物馆馆藏的历史摄影作品。",
             technicalInfo: [
-                metadata.DateTimeOriginal ? `拍摄时间: ${cleanHtml(metadata.DateTimeOriginal.value)}` : null,
-                imageInfo.width && imageInfo.height ? `尺寸: ${imageInfo.width} x ${imageInfo.height}` : null,
-                metadata.Credit ? `来源: ${cleanHtml(metadata.Credit.value)}` : null,
-                metadata.License ? `许可: ${cleanHtml(metadata.License.value)}` : null
+                objectData.medium ? `工艺: ${objectData.medium}` : null,
+                objectData.dimensions ? `尺寸: ${objectData.dimensions}` : null,
+                objectData.classification ? `分类: ${objectData.classification}` : null,
+                objectData.department ? `收藏部门: ${objectData.department}` : null,
+                objectData.creditLine ? `来源: ${objectData.creditLine}` : null
             ].filter(Boolean)
         };
 
