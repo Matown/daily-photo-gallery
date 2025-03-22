@@ -1,0 +1,230 @@
+:root {
+    --primary-color: #2c3e50;
+    --secondary-color: #34495e;
+    --accent-color: #3498db;
+    --text-color: #333;
+    --light-gray: #f5f6fa;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: var(--light-gray);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+header h1 {
+    color: var(--primary-color);
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.date {
+    color: var(--secondary-color);
+    font-size: 1rem;
+}
+
+.photo-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+#daily-photo {
+    width: 100%;
+    height: auto;
+    max-height: 600px;
+    object-fit: contain;
+    display: block;
+    background-color: var(--light-gray);
+}
+
+.photo-info {
+    padding: 1.5rem;
+}
+
+#photo-title {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.photographer-info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 0.8rem;
+    background: var(--light-gray);
+    border-radius: 8px;
+}
+
+#photographer-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin-right: 0.8rem;
+    object-fit: cover;
+}
+
+#photographer-name {
+    color: var(--primary-color);
+    margin-bottom: 0.3rem;
+    font-size: 1.1rem;
+}
+
+#photographer-bio {
+    color: var(--secondary-color);
+    font-size: 0.9rem;
+}
+
+.photo-analysis {
+    margin-top: 1.5rem;
+}
+
+.photo-analysis h3 {
+    color: var(--primary-color);
+    margin-bottom: 0.8rem;
+    font-size: 1.2rem;
+}
+
+#photo-description {
+    margin-bottom: 1.2rem;
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+.technical-details {
+    background: var(--light-gray);
+    padding: 1.2rem;
+    border-radius: 8px;
+}
+
+.technical-details h4 {
+    color: var(--primary-color);
+    margin-bottom: 0.8rem;
+    font-size: 1.1rem;
+}
+
+#technical-info {
+    list-style: none;
+}
+
+#technical-info li {
+    margin-bottom: 0.4rem;
+    color: var(--secondary-color);
+    font-size: 0.9rem;
+}
+
+footer {
+    text-align: center;
+    margin-top: 2rem;
+    color: var(--secondary-color);
+    font-size: 0.8rem;
+    padding: 1rem 0;
+}
+
+/* 响应式布局调整 */
+@media screen and (max-width: 768px) {
+    .container {
+        padding: 0.5rem;
+    }
+
+    header h1 {
+        font-size: 1.5rem;
+    }
+
+    .photo-info {
+        padding: 1rem;
+    }
+
+    #daily-photo {
+        max-height: none;
+        height: auto;
+        width: 100%;
+        object-fit: contain;
+        aspect-ratio: auto;
+        max-height: 70vh;
+    }
+
+    #photo-title {
+        font-size: 1.3rem;
+    }
+
+    .photographer-info {
+        padding: 0.6rem;
+    }
+
+    #photographer-avatar {
+        width: 50px;
+        height: 50px;
+    }
+
+    #photo-description {
+        font-size: 0.9rem;
+    }
+}
+
+/* 竖屏模式特别处理 */
+@media screen and (max-width: 768px) and (orientation: portrait) {
+    #daily-photo {
+        max-height: 50vh;
+        width: 100%;
+        object-fit: contain;
+        margin: 0 auto;
+    }
+
+    .photo-container {
+        background: var(--light-gray);
+    }
+}
+
+/* 横屏模式特别处理 */
+@media screen and (max-width: 768px) and (orientation: landscape) {
+    #daily-photo {
+        max-height: 70vh;
+        width: 100%;
+        object-fit: contain;
+    }
+}
+
+/* 超小屏幕设备适配 */
+@media screen and (max-width: 480px) {
+    header h1 {
+        font-size: 1.3rem;
+    }
+
+    .photo-info {
+        padding: 0.8rem;
+    }
+
+    #photo-title {
+        font-size: 1.2rem;
+    }
+
+    #photographer-avatar {
+        width: 40px;
+        height: 40px;
+    }
+
+    .technical-details {
+        padding: 0.8rem;
+    }
+} 
