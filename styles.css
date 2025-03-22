@@ -22,23 +22,23 @@ body {
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 1rem;
+    padding: 2rem;
 }
 
 header {
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: 3rem;
 }
 
 header h1 {
     color: var(--primary-color);
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
 }
 
 .date {
     color: var(--secondary-color);
-    font-size: 1rem;
+    font-size: 1.1rem;
 }
 
 .photo-container {
@@ -50,44 +50,41 @@ header h1 {
 
 #daily-photo {
     width: 100%;
-    height: auto;
-    max-height: 600px;
-    object-fit: contain;
+    height: 600px;
+    object-fit: cover;
     display: block;
-    background-color: var(--light-gray);
 }
 
 .photo-info {
-    padding: 1.5rem;
+    padding: 2rem;
 }
 
 #photo-title {
-    font-size: 1.5rem;
+    font-size: 2rem;
     color: var(--primary-color);
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
 }
 
 .photographer-info {
     display: flex;
     align-items: center;
-    margin-bottom: 1.5rem;
-    padding: 0.8rem;
+    margin-bottom: 2rem;
+    padding: 1rem;
     background: var(--light-gray);
     border-radius: 8px;
 }
 
 #photographer-avatar {
-    width: 60px;
-    height: 60px;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
-    margin-right: 0.8rem;
+    margin-right: 1rem;
     object-fit: cover;
 }
 
 #photographer-name {
     color: var(--primary-color);
-    margin-bottom: 0.3rem;
-    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
 }
 
 #photographer-bio {
@@ -96,31 +93,28 @@ header h1 {
 }
 
 .photo-analysis {
-    margin-top: 1.5rem;
+    margin-top: 2rem;
 }
 
 .photo-analysis h3 {
     color: var(--primary-color);
-    margin-bottom: 0.8rem;
-    font-size: 1.2rem;
+    margin-bottom: 1rem;
 }
 
 #photo-description {
-    margin-bottom: 1.2rem;
-    line-height: 1.6;
-    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.8;
 }
 
 .technical-details {
     background: var(--light-gray);
-    padding: 1.2rem;
+    padding: 1.5rem;
     border-radius: 8px;
 }
 
 .technical-details h4 {
     color: var(--primary-color);
-    margin-bottom: 0.8rem;
-    font-size: 1.1rem;
+    margin-bottom: 1rem;
 }
 
 #technical-info {
@@ -128,103 +122,32 @@ header h1 {
 }
 
 #technical-info li {
-    margin-bottom: 0.4rem;
+    margin-bottom: 0.5rem;
     color: var(--secondary-color);
-    font-size: 0.9rem;
 }
 
 footer {
     text-align: center;
-    margin-top: 2rem;
+    margin-top: 3rem;
     color: var(--secondary-color);
-    font-size: 0.8rem;
-    padding: 1rem 0;
+    font-size: 0.9rem;
 }
 
-/* 响应式布局调整 */
-@media screen and (max-width: 768px) {
+/* 响应式设计调整 */
+@media (max-width: 768px) {
     .container {
-        padding: 0.5rem;
-    }
-
-    header h1 {
-        font-size: 1.5rem;
-    }
-
-    .photo-info {
         padding: 1rem;
     }
 
-    #daily-photo {
-        max-height: none;
-        height: auto;
-        width: 100%;
-        object-fit: contain;
-        aspect-ratio: auto;
-        max-height: 70vh;
-    }
-
-    #photo-title {
-        font-size: 1.3rem;
-    }
-
-    .photographer-info {
-        padding: 0.6rem;
-    }
-
-    #photographer-avatar {
-        width: 50px;
-        height: 50px;
-    }
-
-    #photo-description {
-        font-size: 0.9rem;
-    }
-}
-
-/* 竖屏模式特别处理 */
-@media screen and (max-width: 768px) and (orientation: portrait) {
-    #daily-photo {
-        max-height: 50vh;
-        width: 100%;
-        object-fit: contain;
-        margin: 0 auto;
-    }
-
-    .photo-container {
-        background: var(--light-gray);
-    }
-}
-
-/* 横屏模式特别处理 */
-@media screen and (max-width: 768px) and (orientation: landscape) {
-    #daily-photo {
-        max-height: 70vh;
-        width: 100%;
-        object-fit: contain;
-    }
-}
-
-/* 超小屏幕设备适配 */
-@media screen and (max-width: 480px) {
     header h1 {
-        font-size: 1.3rem;
+        font-size: 2rem;
+    }
+
+    #daily-photo {
+        height: 400px;
     }
 
     .photo-info {
-        padding: 0.8rem;
-    }
-
-    #photo-title {
-        font-size: 1.2rem;
-    }
-
-    #photographer-avatar {
-        width: 40px;
-        height: 40px;
-    }
-
-    .technical-details {
-        padding: 0.8rem;
+        padding: 1.5rem;
     }
 } 
